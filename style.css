@@ -1,8 +1,50 @@
+* {
+  box-sizing: border-box;
+
+  color: #a8cf00;
+  fill: #a8cf00;
+}
+
 body {
   margin: 0;
   padding: 0;
 }
 
 #app {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100svw;
   height: 100svh;
+}
+
+
+.btn{ 
+  width: 32px;
+  height: 32px;
+  border-radius: 14%;
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 75%;
+    height: 75%;
+  
+  }
+}
+
+.btn:hover {
+  box-shadow: 0 0 8px #fff
+}
+
+#app .cesium-button, 
+#app .cesium-button svg{
+  background: transparent;
+  border: none;
 }

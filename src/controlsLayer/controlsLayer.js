@@ -1,27 +1,39 @@
+import { Cartesian3 } from "cesium";
+import { goHome, viewer } from "../mapLayer";
 import "./controlsLayer.scss";
-import { viewer } from "../mapLayer";
 
 const MINIMUM_CAMERA_HEIGHT = 100;
 const MAXIMUM_CAMERA_HEIGHT = 100_000_000;
+const MOVEMENT_SPEED_RADIANS_PER_METERS = 0.000_000_005;
+
+const heightIndicatorElement = document.querySelector("#height-indicator");
 const zoomInElement = document.querySelector("#zoom-in");
 const zoomOutElement = document.querySelector("#zoom-out");
-const heightIndicatorElement = document.querySelector("#height-indicator");
 
-const isTooFar = () => {
+const controlsId = [
+  "home",
+  zoomInElement,
+  zoomOutElement,
+  "left",
+  "right",
+  "up",
+  "down",
+  "rotate-left",
+  "rotate-right",
+];
+
+viewer.camera.changed.addEventListener(() => {
   const cameraHeightMeters = viewer.camera.positionCartographic.height;
-  return cameraHeightMeters >= MAXIMUM_CAMERA_HEIGHT;
-};
 
-const isTooClose = () => {
-  const cameraHeightMeters = viewer.camera.positionCartographic.height;
-  return cameraHeightMeters <= MINIMUM_CAMERA_HEIGHT;
-};
+  const heightUnity = cameraHeightMeters > 1000 ? "km" : "m";
+  const heightValue =
+    cameraHeightMeters > 1000 ? cameraHeightMeters / 1000 : cameraHeightMeters;
+  const decimalPlaces =
+    cameraHeightMeters < 100_000 && cameraHeightMeters >= 1000 ? 2 : 0;
 
-const onCameraChanged = () => {
-  const cameraHeightMeters = viewer.camera.positionCartographic.height;
-
-  heightIndicatorElement.innerText =
-    (cameraHeightMeters / 1000).toFixed(2) + " km";
+  heightIndicatorElement.innerText = `${heightValue.toFixed(
+    decimalPlaces
+  )} ${heightUnity}`;
 
   if (isTooClose()) {
     zoomInElement.disabled = true;
@@ -34,89 +46,140 @@ const onCameraChanged = () => {
   } else {
     zoomOutElement.disabled = false;
   }
+});
+
+const isTooFar = () => {
+  const cameraHeightMeters = viewer.camera.positionCartographic.height;
+  return cameraHeightMeters >= MAXIMUM_CAMERA_HEIGHT;
 };
 
-onCameraChanged();
-viewer.camera.changed.addEventListener(onCameraChanged);
+const isTooClose = () => {
+  const cameraHeightMeters = viewer.camera.positionCartographic.height;
+  return cameraHeightMeters <= MINIMUM_CAMERA_HEIGHT;
+};
 
-// zoomInElement.addEventListener("click", () => {
-//   zoomAction(true);
-// });
+let interval;
 
-// zoomOutElement.addEventListener("click", () => {
-//   zoomAction(false);
-// });
-
-let zoomInterval;
-let isHolding = false;
-
-const zoomAction = (zoomIn) => {
-  const height = viewer.camera.positionCartographic.height;
-  const zoomValue = 0.2 * height;
-  if (zoomIn) {
-    if (!isTooClose()) {
-      viewer.camera.zoomIn(zoomValue);
-    }
-  } else if (!isTooFar()) {
-    viewer.camera.zoomOut(zoomValue);
+const stopMovement = () => {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
   }
 };
 
-const startZoom = (zoomIn) => {
-  if (zoomInterval) clearInterval(zoomInterval);
-  zoomInterval = setInterval(() => {
-    zoomAction(zoomIn);
-  }, 100); // Adjust the interval for smoother or faster zoom
+const startMovement = (fn, value) => {
+  stopMovement();
+  interval = setInterval(fn, 10, value);
 };
 
-const stopZoom = () => {
-  isHolding = false;
-  clearInterval(zoomInterval);
-  zoomInterval = null;
+const rotateCamera = (direction) => {
+  const rotateValue = 0.01;
+  switch (direction) {
+    case "rotate-left":
+      viewer.camera.setView({
+        orientation: {
+          heading: viewer.camera.heading + rotateValue,
+          pitch: viewer.camera.pitch,
+          roll: viewer.camera.roll,
+        }
+      })
+      break;
+    case "rotate-right":
+      viewer.camera.setView({
+        orientation: {
+          heading: viewer.camera.heading - rotateValue,
+          pitch: viewer.camera.pitch,
+          roll: viewer.camera.roll,
+        }
+      })
+      break;
+  }
 };
 
-const handleZoom = (zoomIn) => {
-  zoomAction(zoomIn);
+const moveCameraInDirection = (direction) => {
+  const cameraHeightMeters = viewer.camera.positionCartographic.height;
+  const degreesMovement =
+    cameraHeightMeters * MOVEMENT_SPEED_RADIANS_PER_METERS;
 
-  setTimeout(() => {
-    if (isHolding) {
-      startZoom(zoomIn);
+  const cameraPosition = viewer.camera.positionCartographic;
+
+  let degreesMovementLong = 0;
+  let degreesMovementLat = 0;
+
+  switch (direction) {
+    case "left":
+      degreesMovementLong = -degreesMovement;
+      break;
+    case "right":
+      degreesMovementLong = degreesMovement;
+      break;
+    case "up":
+      degreesMovementLat = degreesMovement / 2;
+      break;
+    case "down":
+      degreesMovementLat = -degreesMovement / 2;
+      break;
+  }
+
+  viewer.camera.flyTo({
+    destination: Cartesian3.fromRadians(
+      cameraPosition.longitude + degreesMovementLong,
+      cameraPosition.latitude + degreesMovementLat,
+      cameraPosition.height
+    ),
+    duration: 0,
+  });
+};
+
+const zoomCamera = (value) => {
+  const height = viewer.camera.positionCartographic.height;
+  const zoomValue = 0.02 * height;
+
+  switch (value) {
+    case "zoom-in":
+      if (!isTooClose()) viewer.camera.zoomIn(zoomValue);
+      break;
+
+    case "zoom-out":
+      if (!isTooFar()) viewer.camera.zoomOut(zoomValue);
+      break;
+  }
+};
+
+controlsId.forEach((id) => {
+  const button = id instanceof Element ? id : document.getElementById(id);
+  if (!button) {
+    console.error(`Button with id ${id} not found`);
+    return;
+  }
+  const eventHandler = (event) => {
+    const id = event.currentTarget.id;
+    switch (id) {
+      case "home":
+        goHome(2);
+        break;
+      case "rotate-left":
+      case "rotate-right":
+        startMovement(rotateCamera, id);
+        break;
+
+      case "zoom-in":
+      case "zoom-out":
+        startMovement(zoomCamera, id);
+        break;
+
+      case "left":
+      case "right":
+      case "up":
+      case "down":
+        startMovement(moveCameraInDirection, id);
     }
-  }, 500);
-};
+  };
 
-zoomInElement.addEventListener("mousedown", () => {
-  isHolding = true;
-  handleZoom(true);
+  button.addEventListener("mousedown", eventHandler);
+  button.addEventListener("touchstart", eventHandler);
+
+  button.addEventListener("mouseup", stopMovement);
+  button.addEventListener("touchend", stopMovement);
+  button.addEventListener("mouseleave", stopMovement);
 });
-
-zoomInElement.addEventListener(
-  "touchstart",
-  () => {
-    isHolding = true;
-    handleZoom(true);
-  },
-  { passive: true }
-);
-
-zoomOutElement.addEventListener("mousedown", () => {
-  isHolding = true;
-  handleZoom(false);
-});
-
-zoomOutElement.addEventListener(
-  "touchstart",
-  () => {
-    isHolding = true;
-    handleZoom(false);
-  },
-  { passive: true }
-);
-
-zoomInElement.addEventListener("mouseup", stopZoom);
-zoomInElement.addEventListener("mouseleave", stopZoom);
-zoomInElement.addEventListener("touchend", stopZoom);
-
-zoomOutElement.addEventListener("mouseup", stopZoom);
-zoomOutElement.addEventListener("mouseleave", stopZoom);
-zoomOutElement.addEventListener("touchend", stopZoom);

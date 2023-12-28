@@ -29,10 +29,14 @@
         }
 
         .title {
-            font-size: 20px;
+            font-size: 32px;
             font-family: monospace;
             font-weight: bold;
+        }
 
+        .subtitle {
+            font-size: 20px;
+            margin-left: 20px;
         }
 
     }
@@ -100,6 +104,14 @@
     }
 }
 
+@media screen and (max-width: 1200px) {
+
+    .subtitle {
+        display: none;
+    }
+    
+}
+
 @media screen and (max-width: 900px) {
    #controlsLayer {
     align-items: flex-start;
@@ -107,23 +119,9 @@
     flex-wrap: wrap;
     height: fit-content
    }
-   
-    .title{
-       display: none;
-   }
 
    .navigation-section{
     flex-wrap: wrap;
    }
-
     
-}
-
-
-
-
-#checkbox {
-    position: absolute;
-    bottom: 0;
-    right: 0;
 }

@@ -22,8 +22,25 @@ const controlsId = [
   "rotate-right",
 ];
 
-viewer.camera.changed.addEventListener(() => {
+const computeCameraHeight = () => {
   const cameraHeightMeters = viewer.camera.positionCartographic.height;
+  const heightUnity = cameraHeightMeters > 1000 ? "km" : "m";
+  const heightValue =
+    cameraHeightMeters > 1000 ? cameraHeightMeters / 1000 : cameraHeightMeters;
+  const decimalPlaces =
+    cameraHeightMeters < 100_000 && cameraHeightMeters >= 1000 ? 2 : 0;
+
+  heightIndicatorElement.innerText = `${heightValue.toFixed(
+    decimalPlaces
+  )} ${heightUnity}`;
+
+  return cameraHeightMeters;
+};
+
+computeCameraHeight();
+
+viewer.camera.changed.addEventListener(() => {
+  const cameraHeightMeters = computeCameraHeight();
 
   const heightUnity = cameraHeightMeters > 1000 ? "km" : "m";
   const heightValue =

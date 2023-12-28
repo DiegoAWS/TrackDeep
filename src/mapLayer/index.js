@@ -10,6 +10,7 @@ import {
   createGooglePhotorealistic3DTileset,
   HeadingPitchRange,
   Transforms,
+  JulianDate,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
@@ -99,18 +100,24 @@ viewer.selectedEntityChanged.addEventListener((entity) => {
   runOneTime = true;
 });
 
-const initialTimer = Date.now();
+
+const TALLINN_POSITION ={
+  latitude: 59.437,
+  longitude: 24.7536,
+  height: 1_000,
+}
+
 
 let runOneTime = false;
 let counter = 2;
 viewer.clock.onTick.addEventListener(function (clock) {
-  const initialX = 24.7536;
-  const initialY = 59.437;
-  const distance = (Date.now() - initialTimer) / 100000 ;
 
-  dot.position = Cartesian3.fromDegrees(initialX + distance, initialY, 1_000);
+  const secondsElapsed = JulianDate.secondsDifference(JulianDate.now(), clock.startTime);
+  const distance = secondsElapsed /10 ;
 
-  dot2.position = Cartesian3.fromDegrees(initialX, initialY - distance, 1_000);
+  dot.position = Cartesian3.fromDegrees(TALLINN_POSITION.longitude + distance, TALLINN_POSITION.latitude, TALLINN_POSITION.height);
+
+  dot2.position = Cartesian3.fromDegrees(TALLINN_POSITION.longitude, TALLINN_POSITION.latitude - distance/2, TALLINN_POSITION.height + 1000);
   
   if (runOneTime) {
     viewer.camera.lookAtTransform(viewer.camera.transform, new HeadingPitchRange(Math.PI/2, -Math.PI/12, 1000));

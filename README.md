@@ -1,4 +1,9 @@
+
 # Simulation of flying objects
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/99e8761d-a26b-4b8c-85d1-3144eb178bae/deploy-status)](https://app.netlify.com/sites/trackdeep/deploys)
+
+Live Version: [https://trackdeep.netlify.app/](https://trackdeep.netlify.app/)
 
 > This test task involves creating a web application to simulate flying objects with specific behaviors. Let's break down the task into smaller components and outline a general approach to tackle it. Given the complexity, it's unlikely to complete the entire task within 20 hours, so focus on the core functionalities first.
 

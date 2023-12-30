@@ -2,6 +2,7 @@ import { Cartesian3, Math as CesiumMath } from "cesium";
 import { viewer } from "../mapLayer/index";
 import { heightIndicatorElement } from "../constants/domElements";
 import {
+  DEFAULT_CAMERA_HEIGHT,
   MAXIMUM_CAMERA_HEIGHT,
   MINIMUM_CAMERA_HEIGHT,
   MOVEMENT_SPEED_RADIANS_PER_METERS,
@@ -39,18 +40,25 @@ export const computeCameraHeight = () => {
   return cameraHeightMeters;
 };
 
-export const goHome = (duration = 0) => {
-  viewer.camera.flyTo({
-    destination: Cartesian3.fromDegrees(
-      TALLINN_POSITION.longitude,
-      TALLINN_POSITION.latitude,
-      TALLINN_POSITION.height
-    ),
-    orientation: {
-      heading: CesiumMath.toRadians(0.0),
-      pitch: CesiumMath.toRadians(-90.0),
-    },
-    duration,
+
+export const goHome = async (duration = 0) => {
+  return new Promise((resolve, reject) => {
+    viewer.trackedEntity = undefined;
+
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(
+        TALLINN_POSITION.longitude,
+        TALLINN_POSITION.latitude,
+        DEFAULT_CAMERA_HEIGHT
+      ),
+      orientation: {
+        heading: CesiumMath.toRadians(0.0),
+        pitch: CesiumMath.toRadians(-90.0),
+      },
+      duration,
+      complete: resolve,
+      cancel: reject,
+    });
   });
 };
 

@@ -74,7 +74,7 @@ controlsId.forEach((id) => {
     const id = event.currentTarget.id;
     switch (id) {
       case "home":
-        goHome(2);
+        goHome();
         break;
       case "rotate-left":
       case "rotate-right":

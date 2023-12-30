@@ -1,9 +1,13 @@
 window.CESIUM_BASE_URL = process.env.CESIUM_BASE_URL;
 
-import { Cartesian3, Ion, Viewer, createGooglePhotorealistic3DTileset, Color, JulianDate } from "cesium";
+import { Cartesian3, Ion, Viewer, Color, JulianDate, Terrain } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import { goHome } from "../helpers/cameraHelpers";
-import { TALLINN_POSITION } from "../constants/values";
+import {
+  MAXIMUM_CAMERA_HEIGHT,
+  MINIMUM_CAMERA_HEIGHT,
+  TALLINN_POSITION,
+} from "../constants/values";
 
 Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN;
 
@@ -20,27 +24,28 @@ export const viewer = new Viewer("app", {
   geocoder: false,
   fullscreenButton: false,
   scene3DOnly: true,
-  globe: false,
-  // terrain: Terrain.fromWorldTerrain(),
+  
+  terrain: Terrain.fromWorldTerrain(),
 });
 
-viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100;
-viewer.scene.screenSpaceCameraController.maximumZoomDistance = 100_000_000;
+viewer.scene.screenSpaceCameraController.minimumZoomDistance =
+  MINIMUM_CAMERA_HEIGHT;
+viewer.scene.screenSpaceCameraController.maximumZoomDistance =
+  MAXIMUM_CAMERA_HEIGHT;
 viewer.camera.percentageChanged = 0.001;
 
-viewer.scene.skyAtmosphere.show = true;
-//  Photorealistic 3D Tiles
-try {
-  const tileset = await createGooglePhotorealistic3DTileset();
-  viewer.scene.primitives.add(tileset);
-} catch (error) {
-  console.log(`Error loading Photorealistic 3D Tiles tileset.
-  ${error}`);
-}
+// viewer.scene.skyAtmosphere.show = true;
+// //  Photorealistic 3D Tiles
+// try {
+//   const tileset = await createGooglePhotorealistic3DTileset();
+//   viewer.scene.primitives.add(tileset);
+// } catch (error) {
+//   console.log(`Error loading Photorealistic 3D Tiles tileset.
+//   ${error}`);
+// }
 
-goHome();
-
-
+// on the first load, go to Tallinn with fly time
+await goHome(5);
 
 
 const dot = viewer.entities.add({
@@ -71,9 +76,6 @@ viewer.selectedEntityChanged.addEventListener((entity) => {
   runOneTime = true;
 });
 
-
-
-
 let runOneTime = false;
 let counter = 2;
 viewer.clock.onTick.addEventListener(function (clock) {
@@ -86,13 +88,13 @@ viewer.clock.onTick.addEventListener(function (clock) {
   dot.position = Cartesian3.fromDegrees(
     TALLINN_POSITION.longitude + distance,
     TALLINN_POSITION.latitude,
-    TALLINN_POSITION.height
+    1000
   );
 
   dot2.position = Cartesian3.fromDegrees(
     TALLINN_POSITION.longitude,
     TALLINN_POSITION.latitude - distance / 2,
-    TALLINN_POSITION.height + 1000
+     2000
   );
 
   if (runOneTime) {

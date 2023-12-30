@@ -6,8 +6,8 @@ export const ZOOM_SPEED_BASED_HEIGHT = 0.01;
 export const ROTATION_STEP_RADIANS = Math.PI / 300;
 
 export const TALLINN_POSITION = {
-    latitude: 59.437,
-    longitude: 24.7536,
-    height: 1_000,
-  };
+  latitude: 59.437,
+  longitude: 24.7536,
+};
   
+  export const DEFAULT_CAMERA_HEIGHT = 50_000; // 50 km

@@ -41,24 +41,20 @@ export const computeCameraHeight = () => {
 };
 
 
-export const goHome = async (duration = 0) => {
-  return new Promise((resolve, reject) => {
-    viewer.trackedEntity = undefined;
+export const goHome = (duration = 0) => {
+  viewer.trackedEntity = undefined;
 
-    viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(
-        TALLINN_POSITION.longitude,
-        TALLINN_POSITION.latitude,
-        DEFAULT_CAMERA_HEIGHT
-      ),
-      orientation: {
-        heading: CesiumMath.toRadians(0.0),
-        pitch: CesiumMath.toRadians(-90.0),
-      },
-      duration,
-      complete: resolve,
-      cancel: reject,
-    });
+  viewer.camera.flyTo({
+    destination: Cartesian3.fromDegrees(
+      TALLINN_POSITION.longitude,
+      TALLINN_POSITION.latitude,
+      DEFAULT_CAMERA_HEIGHT
+    ),
+    orientation: {
+      heading: CesiumMath.toRadians(0.0),
+      pitch: CesiumMath.toRadians(-90.0),
+    },
+    duration,
   });
 };
 
